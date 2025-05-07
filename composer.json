@@ -12,7 +12,10 @@
     "php": "^8.4",
     "ext-mysqli": "*",
     "ext-pdo": "*",
-    "ext-pdo_mysql": "*"
+    "ext-pdo_mysql": "*",
+    "phpoffice/phpspreadsheet": "^1.28",
+    "phpoffice/phpword": "^1.0",
+    "tecnickcom/tcpdf": "^6.6"
   },
   "autoload": {
     "psr-4": {
