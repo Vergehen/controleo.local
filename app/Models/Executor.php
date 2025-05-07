@@ -42,4 +42,10 @@ class Executor extends Model
         $stmt->execute(['department_id' => $departmentId]);
         return $stmt->fetchAll();
     }
+
+    // Added missing getAll() method
+    public function getAll(): array
+    {
+        return $this->getAllWithRelations();
+    }
 }
