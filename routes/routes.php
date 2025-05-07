@@ -6,6 +6,7 @@ use App\Controllers\HomeController;
 use App\Controllers\IssuerController;
 use App\Controllers\OrderController;
 use App\Controllers\PositionController;
+use App\Controllers\ReportController;
 use App\Routes\Router;
 
 $router = new Router();
@@ -65,6 +66,17 @@ $router->addRoute('POST', '/orders/{id}/delete', OrderController::class, 'delete
 $router->addRoute('GET', '/orders/search', OrderController::class, 'search');
 $router->addRoute('GET', '/orders/active', OrderController::class, 'active');
 $router->addRoute('GET', '/orders/overdue', OrderController::class, 'overdue');
+
+// Звіти (Reports)
+$router->addRoute('GET', '/reports', ReportController::class, 'index');
+$router->addRoute('GET', '/reports/active-orders', ReportController::class, 'activeOrders');
+$router->addRoute('GET', '/reports/overdue-orders', ReportController::class, 'overdueOrders');
+$router->addRoute('GET', '/reports/department/{id}', ReportController::class, 'departmentReport');
+$router->addRoute('GET', '/reports/executor/{id}', ReportController::class, 'executorReport');
+
+// Експорт (Export)
+$router->addRoute('GET', '/reports/export/{format}/{type}', ReportController::class, 'exportReport');
+$router->addRoute('GET', '/reports/export/{format}/{type}/{id}', ReportController::class, 'exportReport');
 
 // Обробляємо маршрути
 $router->dispatch();
