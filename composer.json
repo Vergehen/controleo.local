@@ -1,0 +1,28 @@
+{
+  "name": "controleo/app",
+  "description": "Курсова робота з предмету \"Організація баз даних та знань\". Студента групи 121-24-2, Строя Б.В. Тема: \"Система контролю за відвідуванням\"",
+  "author": [
+    {
+      "name": "Bohdan Stroi",
+      "email": "stroi.b.v@nmu.one"
+    }
+  ],
+  "require": {
+    "smarty/smarty": "^4.4",
+    "php": "^8.4",
+    "ext-mysqli": "*",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/",
+      "App\\Routes\\": "routes/"
+    }
+  },
+  "config": {
+    "platform": {
+      "php": "8.4"
+    }
+  }
+}
