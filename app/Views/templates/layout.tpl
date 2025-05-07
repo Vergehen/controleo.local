@@ -43,6 +43,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/positions">Посади</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reports">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>Звіти
+                        </a>
+                    </li>
                 </ul>
                 <form class="d-flex" action="/search" method="GET">
                     <input class="form-control me-2" type="search" name="query" placeholder="Пошук по системі"
