@@ -9,6 +9,64 @@
             </a>
         </div>
 
+        <!-- Аналітичні показники -->
+        {if $orders|@count > 0}
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="mb-0">{$analytics.completion_rate}%</h4>
+                                    <small>Відсоток виконання</small>
+                                </div>
+                                <i class="bi bi-check-circle-fill fs-1 opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="mb-0">{$analytics.avg_completion_days|round:1}</h4>
+                                    <small>Середня тривалість (днів)</small>
+                                </div>
+                                <i class="bi bi-clock-fill fs-1 opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="mb-0">{$analytics.overdue_rate}%</h4>
+                                    <small>Відсоток прострочених</small>
+                                </div>
+                                <i class="bi bi-exclamation-triangle-fill fs-1 opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="mb-0">{$analytics.total_orders}</h4>
+                                    <small>Всього наказів</small>
+                                </div>
+                                <i class="bi bi-file-text-fill fs-1 opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {/if}
+
         <div class="card mb-4">
             <div class="card-body p-0">
                 <div class="p-3 bg-light border-bottom">
@@ -52,9 +110,9 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {foreach $orders as $order}
-                                            <tr class="order-row" data-status="{$order.order_status}"
-                                                data-priority="{$order.order_priority}" data-deadline="{$order.order_deadline}">
+                                        {foreach $orders as $order} <tr class="order-row" data-status="{$order.order_status}"
+                                                data-original-status="{$order.order_status}" data-priority="{$order.order_priority}"
+                                                data-deadline="{$order.order_deadline}">
                                                 <td>{$order.order_id}</td>
                                                 <td>
                                                     <a href="/orders/{$order.order_id}"
@@ -111,8 +169,10 @@
                                 </table>
                             </div>
                         {else}
-                            <div class="alert alert-info mt-3">Наказів поки немає. <a href="/orders/create">Додати перший
-                                    наказ</a></div>
+                            <div class="alert alert-info mt-3">
+                                Наказів поки немає.
+                                <a href="/orders/create">Додати перший наказ</a>
+                            </div>
                         {/if}
                     </div>
                 </div>
@@ -127,9 +187,11 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-8">
-                            <canvas id="ordersChart" height="200" data-active="{$activeOrders|@count}"
-                                data-completed="{$completedOrders|@count}" data-overdue="{$overdueOrders|@count}">
-                            </canvas>
+                            <div class="chart-container">
+                                <canvas id="ordersChart" data-active="{$activeOrders|@count}"
+                                    data-completed="{$completedOrders|@count}" data-overdue="{$overdueOrders|@count}">
+                                </canvas>
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <div class="list-group">
@@ -170,7 +232,6 @@
                 const activeCount = parseInt($(ordersChartElement).data('active')) || 0;
                 const completedCount = parseInt($(ordersChartElement).data('completed')) || 0;
                 const overdueCount = parseInt($(ordersChartElement).data('overdue')) || 0;
-
                 new Chart(ctx, {
                     type: 'doughnut',
                     data: {
@@ -186,9 +247,22 @@
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: true,
+                        aspectRatio: 1,
                         plugins: {
                             legend: {
-                                position: 'bottom'
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            }
+                        },
+                        elements: {
+                            arc: {
+                                borderWidth: 2
                             }
                         }
                     }
@@ -202,20 +276,35 @@
             } else if (window.location.pathname === '/orders/overdue') {
                 initialFilter = 'overdue';
             }
-
             $('.deadline-countdown').each(function() {
                 const deadline = new Date($(this).data('deadline'));
-                const daysLeft = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+                const row = $(this).closest('tr');
+                const originalStatus = row.data('original-status');
 
-                if (daysLeft < 0) {
+                // Не змінюємо дедлайн для виконаних наказів
+                if (originalStatus === 'completed') {
+                    return;
+                }
+
+                // Якщо статус вже 'overdue' в базі, не перевизначаємо його
+                if (originalStatus === 'overdue') {
+                    const daysLeft = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+                    if (daysLeft < 0) {
+                        const daysOverdue = Math.abs(Math.floor(daysLeft));
+                        $(this).text("Прострочено на " + daysOverdue + " днів")
+                            .addClass('text-danger fw-bold');
+                    }
+                    return;
+                }
+
+                // Для активних наказів перевіряємо чи не прострочені вони
+                const daysLeft = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+                if (daysLeft < 0 && originalStatus === 'active') {
                     const daysOverdue = Math.abs(Math.floor(daysLeft));
                     $(this).text("Прострочено на " + daysOverdue + " днів")
                         .addClass('text-danger fw-bold');
-
-                    const row = $(this).closest('tr');
-                    if (row.data('status') !== 'completed') {
-                        row.attr('data-status', 'overdue');
-                    }
+                    // Встановлюємо візуальний статус 'overdue' для фільтрації
+                    row.attr('data-status', 'overdue');
                 }
             });
 
@@ -227,15 +316,18 @@
                     $('.order-row').slideDown(200);
                 } else if (filter === 'active') {
                     $('.order-row').hide();
-                    $('.order-row[data-status="active"]').slideDown(200);
+                    // Показуємо накази з оригінальним статусом 'active'
+                    $('.order-row[data-original-status="active"]').slideDown(200);
                 } else if (filter === 'completed') {
                     $('.order-row').hide();
-                    $('.order-row[data-status="completed"]').slideDown(200);
+                    $('.order-row[data-original-status="completed"]').slideDown(200);
                 } else if (filter === 'overdue') {
                     $('.order-row').hide();
-                    $('.order-row:not([data-status="completed"])').each(function() {
-                        const deadline = $(this).data('deadline');
-                        if ($(this).data('status') === 'overdue' || new Date(deadline) < today) {
+                    $('.order-row').each(function() {
+                        const originalStatus = $(this).data('original-status');
+                        const currentStatus = $(this).data('status');
+                        // Показуємо якщо оригінальний статус 'overdue' або поточний статус змінено на 'overdue'
+                        if (originalStatus === 'overdue' || currentStatus === 'overdue') {
                             $(this).slideDown(200);
                         }
                     });

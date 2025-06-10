@@ -9,6 +9,118 @@
             </a>
         </div>
 
+        <!-- Аналітичні показники -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">{$positions|@count}</h4>
+                                <small>Всього посад</small>
+                            </div>
+                            <i class="bi bi-briefcase-fill fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">{$generalStats.completion_rate}%</h4>
+                                <small>Загальна ефективність</small>
+                            </div>
+                            <i class="bi bi-graph-up fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">{$generalStats.active_orders}</h4>
+                                <small>Активні накази</small>
+                            </div>
+                            <i class="bi bi-clock-history fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">{$generalStats.total_orders}</h4>
+                                <small>Всього наказів</small>
+                            </div>
+                            <i class="bi bi-file-text-fill fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Топ виконавці та видавці -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-trophy"></i> Топ-5 виконавців</h5>
+                    </div>
+                    <div class="card-body">
+                        {if $topExecutors|@count > 0}
+                            <div class="list-group list-group-flush">
+                                {foreach $topExecutors as $key => $executor}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                                        <div>
+                                            <strong>{$executor.executor_name}</strong><br>
+                                            <small class="text-muted">{$executor.completed_orders}/{$executor.total_orders} наказів</small>
+                                        </div>
+                                        <span class="badge {if $executor.completion_rate >= 80}bg-success{elseif $executor.completion_rate >= 60}bg-warning{else}bg-danger{/if} rounded-pill">
+                                            {$executor.completion_rate}%
+                                        </span>
+                                    </div>
+                                {/foreach}
+                            </div>
+                        {else}
+                            <p class="text-muted">Немає даних для відображення.</p>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-award"></i> Топ-5 видавців</h5>
+                    </div>
+                    <div class="card-body">
+                        {if $topIssuers|@count > 0}
+                            <div class="list-group list-group-flush">
+                                {foreach $topIssuers as $key => $issuer}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                                        <div>
+                                            <strong>{$issuer.issuer_name}</strong><br>
+                                            <small class="text-muted">{$issuer.total_orders} наказів видано</small>
+                                        </div>
+                                        <span class="badge bg-primary rounded-pill">
+                                            {$issuer.orders_per_month|round:1}/міс
+                                        </span>
+                                    </div>
+                                {/foreach}
+                            </div>
+                        {else}
+                            <p class="text-muted">Немає даних для відображення.</p>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card mb-4">
             <div class="card-header bg-light">
                 <form action="/positions/search" method="GET" class="d-flex">

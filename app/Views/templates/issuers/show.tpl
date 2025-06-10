@@ -13,6 +13,62 @@
         </div>
     </div>
     
+    <!-- Аналітичні показники видавця -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">{$issuerStats.total_orders}</h4>
+                            <small>Всього видано</small>
+                        </div>
+                        <i class="bi bi-file-earmark-plus-fill fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">{$issuerStats.completed_orders}</h4>
+                            <small>Виконано</small>
+                        </div>
+                        <i class="bi bi-check-circle-fill fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">{$issuerStats.active_orders}</h4>
+                            <small>Активні</small>
+                        </div>
+                        <i class="bi bi-clock-history fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">{$issuerStats.avg_completion_days|round:1}</h4>
+                            <small>Середня тривалість (днів)</small>
+                        </div>
+                        <i class="bi bi-clock-fill fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div class="row g-4">
         <div class="col-md-8">
             <div class="card mb-4 shadow-sm">

@@ -4,6 +4,225 @@
     <div class="container">
         <h1 class="mb-4">Генерація звітів</h1>
         
+        <!-- Аналітичний дашборд -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">{$analytics.completion_rate}%</h4>
+                                <small>Загальна ефективність</small>
+                            </div>
+                            <i class="bi bi-graph-up fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">{$analytics.completed_orders}</h4>
+                                <small>Виконано наказів</small>
+                            </div>
+                            <i class="bi bi-check-circle-fill fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">{$analytics.active_orders}</h4>
+                                <small>Активні накази</small>
+                            </div>
+                            <i class="bi bi-clock-history fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">{$analytics.overdue_orders}</h4>
+                                <small>Прострочені</small>
+                            </div>
+                            <i class="bi bi-exclamation-triangle-fill fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Детальна аналітика -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Розподіл за пріоритетом</h5>
+                    </div>
+                    <div class="card-body">
+                        {if $priorityDistribution|@count > 0}
+                            {foreach $priorityDistribution as $priority}
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="badge {if $priority.priority == 'High'}bg-danger{elseif $priority.priority == 'Medium'}bg-warning{else}bg-secondary{/if}">
+                                            {$priority.priority}
+                                        </span>
+                                        <span>{$priority.count}</span>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 8px;">
+                                        <div class="progress-bar {if $priority.priority == 'High'}bg-danger{elseif $priority.priority == 'Medium'}bg-warning{else}bg-secondary{/if}" 
+                                             style="width: {($priority.count / $analytics.total_orders * 100)|round:1}%"></div>
+                                    </div>
+                                </div>
+                            {/foreach}
+                        {/if}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Розподіл за статусом</h5>
+                    </div>
+                    <div class="card-body">
+                        {if $statusDistribution|@count > 0}
+                            {foreach $statusDistribution as $status}
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="badge {if $status.status == 'completed'}bg-success{elseif $status.status == 'active'}bg-primary{elseif $status.status == 'overdue'}bg-danger{else}bg-secondary{/if}">
+                                            {if $status.status == 'completed'}Виконано{elseif $status.status == 'active'}Активний{elseif $status.status == 'overdue'}Прострочений{else}{$status.status}{/if}
+                                        </span>
+                                        <span>{$status.count}</span>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 8px;">
+                                        <div class="progress-bar {if $status.status == 'completed'}bg-success{elseif $status.status == 'active'}bg-primary{elseif $status.status == 'overdue'}bg-danger{else}bg-secondary{/if}" 
+                                             style="width: {($status.count / $analytics.total_orders * 100)|round:1}%"></div>
+                                    </div>
+                                </div>
+                            {/foreach}
+                        {/if}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-graph-down"></i> Тенденції по місяцях</h5>
+                    </div>
+                    <div class="card-body">
+                        {if $monthlyTrends|@count > 0}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Місяць</th>
+                                            <th>Кількість</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {foreach $monthlyTrends as $trend}
+                                            <tr>
+                                                <td>{$trend.month}</td>
+                                                <td>{$trend.count}</td>
+                                            </tr>
+                                        {/foreach}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {else}
+                            <p class="text-muted text-center">Немає даних</p>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Топ виконавці та видавці -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-trophy"></i> Топ-10 виконавців</h5>
+                    </div>
+                    <div class="card-body">
+                        {if $topExecutors|@count > 0}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Виконавець</th>
+                                            <th>Виконано</th>
+                                            <th>Ефективність</th>
+                                            <th>Оцінка</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {foreach $topExecutors as $executor}
+                                            <tr>
+                                                <td>{$executor.executor_name}</td>
+                                                <td>{$executor.completed_orders}/{$executor.total_orders}</td>
+                                                <td>
+                                                    <span class="badge {if $executor.completion_rate >= 80}bg-success{elseif $executor.completion_rate >= 60}bg-warning{else}bg-danger{/if}">
+                                                        {$executor.completion_rate}%
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary">
+                                                        {$executor.performance_score}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        {/foreach}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-award"></i> Топ-10 видавців</h5>
+                    </div>
+                    <div class="card-body">
+                        {if $topIssuers|@count > 0}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Видавець</th>
+                                            <th>Видано</th>
+                                            <th>Виконано</th>
+                                            <th>Активні</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {foreach $topIssuers as $issuer}
+                                            <tr>
+                                                <td>{$issuer.issuer_name}</td>
+                                                <td>{$issuer.total_orders}</td>
+                                                <td>{$issuer.completed_orders}</td>
+                                                <td>{$issuer.active_orders}</td>
+                                            </tr>
+                                        {/foreach}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="card">

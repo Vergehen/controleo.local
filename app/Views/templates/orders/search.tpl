@@ -35,7 +35,7 @@
                                     <td>
                                         {if $order.order_status == 'completed'}
                                             <span class="badge bg-success">Виконано</span>
-                                        {elseif $order.order_status == 'overdue' || ($order.order_deadline < $smarty.now|date_format:"%Y-%m-%d" && !$order.order_date_completed)}
+                                        {elseif $order.order_status == 'overdue' || ($order.order_status != 'completed' && $order.order_deadline < $smarty.now|date_format:"%Y-%m-%d" && empty($order.order_date_completed))}
                                             <span class="badge bg-danger">Прострочено</span>
                                         {else}
                                             <span class="badge bg-warning">Активний</span>

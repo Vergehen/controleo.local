@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Executor;
 use App\Models\Issuer;
 use App\Models\Order;
+use App\Services\AnalyticsService;
 
 class DepartmentController extends Controller
 {
@@ -13,6 +14,7 @@ class DepartmentController extends Controller
     private $executor;
     private $issuer;
     private $order;
+    private $analytics;
 
     public function __construct()
     {
@@ -21,13 +23,23 @@ class DepartmentController extends Controller
         $this->executor = new Executor();
         $this->issuer = new Issuer();
         $this->order = new Order();
-    }
-
-    public function index()
+        $this->analytics = new AnalyticsService();
+    }    public function index()
     {
         $departments = Department::getAllWithStats();
+        
+        // Отримуємо аналітичні дані по відділах
+        $generalStats = $this->analytics->getGeneralStatistics();
+        $monthlyTrends = $this->analytics->getMonthlyTrends();
+        $priorityDistribution = $this->analytics->getPriorityDistribution();
+        $statusDistribution = $this->analytics->getStatusDistribution();
+        
         return $this->render('departments/index', [
             'departments' => $departments,
+            'generalStats' => $generalStats,
+            'monthlyTrends' => $monthlyTrends,
+            'priorityDistribution' => $priorityDistribution,
+            'statusDistribution' => $statusDistribution,
             'title' => 'Відділи'
         ]);
     }
@@ -38,29 +50,31 @@ class DepartmentController extends Controller
 
         if (!$department) {
             return $this->redirect('/departments');
-        }
-
-        $executors = $this->executor->getByDepartment($id) ?: [];
+        }        $executors = $this->executor->getByDepartment($id) ?: [];
         $issuers = $this->issuer->getByDepartment($id) ?: [];
+        
+        // Автоматично оновлюємо статуси прострочених наказів
+        Order::updateOverdueStatuses();
+        
         $departmentOrders = $this->order->getByDepartment($id) ?: [];
         $activeOrders = [];
         $completedOrders = [];
         $overdueOrders = [];
-        $currentDate = date('Y-m-d');
-
+        
         foreach ($departmentOrders as $order) {
             if ($order['order_status'] === 'completed') {
                 $completedOrders[] = $order;
-            } else if ($order['order_deadline'] < $currentDate) {
+            } elseif ($order['order_status'] === 'overdue') {
                 $overdueOrders[] = $order;
-            } else {
+            } elseif ($order['order_status'] === 'active') {
                 $activeOrders[] = $order;
             }
-        }
-
-        if (!isset($department['department_description'])) {
+        }        if (!isset($department['department_description'])) {
             $department['department_description'] = '';
         }
+
+        // Отримуємо аналітичні дані для конкретного відділу
+        $departmentStats = $this->analytics->getDepartmentStatistics($id);
 
         return $this->render('departments/show', [
             'department' => $department,
@@ -70,6 +84,7 @@ class DepartmentController extends Controller
             'activeOrders' => $activeOrders,
             'completedOrders' => $completedOrders,
             'overdueOrders' => $overdueOrders,
+            'departmentStats' => $departmentStats,
             'title' => 'Відділ: ' . $department['department_name']
         ]);
     }

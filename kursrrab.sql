@@ -342,18 +342,3 @@ FROM
     OR I.issuer_id = O.issuer_id
 GROUP BY
     D.department_name;
-
-SELECT
-    *
-FROM
-    OrdersDetailView;
-
-SELECT
-    *
-FROM
-    ActiveOrdersView;
-
-SELECT
-    *
-FROM
-    DepartmentStatsView;

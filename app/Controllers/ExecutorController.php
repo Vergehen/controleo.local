@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Executor;
 use App\Models\Order;
 use App\Models\Position;
+use App\Services\AnalyticsService;
 
 class ExecutorController extends Controller
 {
@@ -13,6 +14,7 @@ class ExecutorController extends Controller
     private $department;
     private $position;
     private $order;
+    private $analytics;
 
     public function __construct()
     {
@@ -21,13 +23,21 @@ class ExecutorController extends Controller
         $this->department = new Department();
         $this->position = new Position();
         $this->order = new Order();
-    }
-
-    public function index()
+        $this->analytics = new AnalyticsService();
+    }    public function index()
     {
         $executors = $this->executor->getAllWithRelations();
+        
+        // Отримуємо аналітичні дані по виконавцях
+        $generalStats = $this->analytics->getGeneralStatistics();
+        $topExecutors = $this->analytics->getTopExecutors(10);
+        $monthlyTrends = $this->analytics->getMonthlyTrends();
+        
         return $this->render('executors/index', [
             'executors' => $executors,
+            'generalStats' => $generalStats,
+            'topExecutors' => $topExecutors,
+            'monthlyTrends' => $monthlyTrends,
             'title' => 'Виконавці'
         ]);
     }
@@ -45,14 +55,15 @@ class ExecutorController extends Controller
         $activeOrders = $this->order->getByExecutorAndStatus($id, 'active') ?: [];
         $completedOrders = $this->order->getByExecutorAndStatus($id, 'completed') ?: [];
         $overdueOrders = $this->order->getByExecutorAndStatus($id, 'overdue') ?: [];
-        $allOrders = array_merge($activeOrders, $completedOrders, $overdueOrders);
-
-        if (!isset($executor['executor_notes'])) {
+        $allOrders = array_merge($activeOrders, $completedOrders, $overdueOrders);        if (!isset($executor['executor_notes'])) {
             $executor['executor_notes'] = '';
         }
 
         $executor['department_name'] = $department ? $department['department_name'] : 'Не вказано';
         $executor['position_name'] = $position ? $position['position_name'] : 'Не вказано';
+
+        // Отримуємо аналітичні дані для конкретного виконавця
+        $executorStats = $this->analytics->getExecutorStatistics($id);
 
         return $this->render('executors/show', [
             'executor' => $executor,
@@ -62,6 +73,7 @@ class ExecutorController extends Controller
             'completedOrders' => $completedOrders,
             'overdueOrders' => $overdueOrders,
             'allOrders' => $allOrders,
+            'executorStats' => $executorStats,
             'title' => 'Виконавець: ' . $executor['executor_name']
         ]);
     }

@@ -5,12 +5,13 @@ namespace App\Controllers;
 use App\Models\Executor;
 use App\Models\Issuer;
 use App\Models\Order;
+use App\Services\AnalyticsService;
 
 class OrderController extends Controller
-{
-    private $order;
+{    private $order;
     private $executor;
     private $issuer;
+    private $analytics;
 
     public function __construct()
     {
@@ -18,10 +19,12 @@ class OrderController extends Controller
         $this->order = new Order();
         $this->executor = new Executor();
         $this->issuer = new Issuer();
-    }
-
-    public function index()
+        $this->analytics = new AnalyticsService();
+    }public function index()
     {
+        // Автоматично оновлюємо статуси прострочених наказів
+        Order::updateOverdueStatuses();
+        
         $sort = $_GET['sort'] ?? 'order_id';
         $order = $_GET['order'] ?? 'ASC';
 
@@ -38,32 +41,36 @@ class OrderController extends Controller
         } else {
             $orders = Order::getAllWithNames($sort, $order);
         }
-
         $activeOrders = [];
         $overdueOrders = [];
         $completedOrders = [];
-        $currentTime = time();
-
-        foreach ($orders as $order_item) {
-            $deadlineTime = strtotime($order_item['order_deadline']);
-
+        $currentTime = time();        foreach ($orders as $order_item) {
+            // Розподіляємо накази по статусах
             if ($order_item['order_status'] === 'completed') {
                 $completedOrders[] = $order_item;
-            } elseif (
-                $order_item['order_status'] === 'overdue' ||
-                ($deadlineTime < $currentTime && $order_item['order_status'] !== 'completed')
-            ) {
+            } elseif ($order_item['order_status'] === 'overdue') {
                 $overdueOrders[] = $order_item;
             } elseif ($order_item['order_status'] === 'active') {
-                $activeOrders[] = $order_item;
-            }
+                // Активними залишаються тільки ті, що мають статус 'active' і дедлайн ще не минув
+                $activeOrders[] = $order_item;            }
+            // Інші статуси ('cancelled', 'failed') не додаємо в жодну категорію для статистики
         }
+
+        // Отримуємо аналітичні дані
+        $analytics = $this->analytics->getGeneralStatistics();
+        $priorityDistribution = $this->analytics->getPriorityDistribution();
+        $statusDistribution = $this->analytics->getStatusDistribution();
+        $monthlyTrends = $this->analytics->getMonthlyTrends();
 
         return $this->render('orders/index', [
             'orders' => $orders,
             'activeOrders' => $activeOrders,
             'overdueOrders' => $overdueOrders,
             'completedOrders' => $completedOrders,
+            'analytics' => $analytics,
+            'priorityDistribution' => $priorityDistribution,
+            'statusDistribution' => $statusDistribution,
+            'monthlyTrends' => $monthlyTrends,
             'title' => 'Накази',
             'currentSort' => $sort,
             'currentOrder' => $order,
@@ -207,10 +214,11 @@ class OrderController extends Controller
     {
         $this->order->delete($id);
         return $this->redirect('/orders');
-    }
-
-    public function active()
+    }    public function active()
     {
+        // Автоматично оновлюємо статуси перед отриманням активних наказів
+        Order::updateOverdueStatuses();
+        
         $sort = $_GET['sort'] ?? 'order_id';
         $order = $_GET['order'] ?? 'ASC';
 
@@ -222,10 +230,11 @@ class OrderController extends Controller
             'currentSort' => $sort,
             'currentOrder' => $order
         ]);
-    }
-
-    public function overdue()
+    }    public function overdue()
     {
+        // Автоматично оновлюємо статуси перед отриманням прострочених наказів
+        Order::updateOverdueStatuses();
+        
         $sort = $_GET['sort'] ?? 'order_id';
         $order = $_GET['order'] ?? 'ASC';
 

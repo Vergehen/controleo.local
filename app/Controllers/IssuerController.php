@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Issuer;
 use App\Models\Order;
 use App\Models\Position;
+use App\Services\AnalyticsService;
 
 class IssuerController extends Controller
 {
@@ -13,6 +14,7 @@ class IssuerController extends Controller
     private $department;
     private $position;
     private $order;
+    private $analytics;
 
     public function __construct()
     {
@@ -21,13 +23,21 @@ class IssuerController extends Controller
         $this->department = new Department();
         $this->position = new Position();
         $this->order = new Order();
-    }
-
-    public function index()
+        $this->analytics = new AnalyticsService();
+    }    public function index()
     {
         $issuers = $this->issuer->getAllWithRelations();
+        
+        // Отримуємо аналітичні дані по видавцях
+        $generalStats = $this->analytics->getGeneralStatistics();
+        $topIssuers = $this->analytics->getTopIssuers(10);
+        $monthlyTrends = $this->analytics->getMonthlyTrends();
+        
         return $this->render('issuers/index', [
             'issuers' => $issuers,
+            'generalStats' => $generalStats,
+            'topIssuers' => $topIssuers,
+            'monthlyTrends' => $monthlyTrends,
             'title' => 'Видавці наказів'
         ]);
     }
@@ -46,16 +56,18 @@ class IssuerController extends Controller
 
         if (!isset($issuer['issuer_notes'])) {
             $issuer['issuer_notes'] = '';
-        }
-
-        $issuer['department_name'] = $department ? $department['department_name'] : 'Не вказано';
+        }        $issuer['department_name'] = $department ? $department['department_name'] : 'Не вказано';
         $issuer['position_name'] = $position ? $position['position_name'] : 'Не вказано';
+
+        // Отримуємо аналітичні дані для конкретного видавця
+        $issuerStats = $this->analytics->getIssuerStatistics($id);
 
         return $this->render('issuers/show', [
             'issuer' => $issuer,
             'department' => $department,
             'position' => $position,
             'issuerOrders' => $issuerOrders,
+            'issuerStats' => $issuerStats,
             'title' => 'Видавець наказів: ' . $issuer['issuer_name']
         ]);
     }

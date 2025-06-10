@@ -21,7 +21,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="card mb-4">
             <div class="card-header bg-light">
                 <div class="d-flex justify-content-between align-items-center">
@@ -43,7 +43,7 @@
                 </div>
             </div>
         </div>
-        
+
         {if $orders|@count > 0}
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
@@ -75,7 +75,7 @@
                                         <td>
                                             {if $order.order_status == 'completed'}
                                                 <span class="badge bg-success">виконано</span>
-                                            {elseif $order.order_status == 'overdue' || ($order.order_deadline < $smarty.now|date_format:"%Y-%m-%d" && !$order.order_date_completed)}
+                                            {elseif $order.order_status == 'overdue' || ($order.order_status != 'completed' && $order.order_deadline < $smarty.now|date_format:"%Y-%m-%d" && empty($order.order_date_completed))}
                                                 <span class="badge bg-danger">прострочено</span>
                                             {else}
                                                 <span class="badge bg-warning">активний</span>
@@ -88,7 +88,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="card mb-4">
                 <div class="card-header bg-info text-white">
                     <h5 class="mb-0">Статистика по наказах</h5>
@@ -97,18 +97,16 @@
                     <div class="row">
                         {assign var="active_count" value=0}
                         {assign var="completed_count" value=0}
-                        {assign var="overdue_count" value=0}
-                        
-                        {foreach $orders as $order}
+                        {assign var="overdue_count" value=0} {foreach $orders as $order}
                             {if $order.order_status == 'completed'}
                                 {assign var="completed_count" value=$completed_count+1}
-                            {elseif $order.order_status == 'overdue' || ($order.order_deadline < $smarty.now|date_format:"%Y-%m-%d" && !$order.order_date_completed)}
+                            {elseif $order.order_status == 'overdue' || ($order.order_status != 'completed' && $order.order_deadline < $smarty.now|date_format:"%Y-%m-%d" && empty($order.order_date_completed))}
                                 {assign var="overdue_count" value=$overdue_count+1}
                             {else}
                                 {assign var="active_count" value=$active_count+1}
                             {/if}
                         {/foreach}
-                        
+
                         <div class="col-md-4">
                             <div class="card bg-warning text-white p-3 text-center">
                                 <h4>{$active_count}</h4>

@@ -7,6 +7,7 @@ use App\Models\Executor;
 use App\Models\Issuer;
 use App\Models\Order;
 use App\Models\Position;
+use App\Services\AnalyticsService;
 use App\Services\ExcelExport;
 use App\Services\PDFExport;
 use App\Services\WordExport;
@@ -18,6 +19,7 @@ class ReportController extends Controller
     private $issuer;
     private $department;
     private $position;
+    private $analytics;
 
     public function __construct()
     {
@@ -27,26 +29,43 @@ class ReportController extends Controller
         $this->issuer = new Issuer();
         $this->department = new Department();
         $this->position = new Position();
-    }
-
-    public function index()
+        $this->analytics = new AnalyticsService();
+    }    public function index()
     {
+        // Автоматично оновлюємо статуси прострочених наказів
+        Order::updateOverdueStatuses();
+        
         $activeOrdersCount = count(Order::getActiveOrders());
         $overdueOrdersCount = count(Order::getOverdueOrders());
         $departments = Department::getAllWithStats();
         $executors = $this->executor->getAll();
+
+        // Отримуємо повну аналітичну інформацію для звітів
+        $analytics = $this->analytics->getGeneralStatistics();
+        $priorityDistribution = $this->analytics->getPriorityDistribution();
+        $statusDistribution = $this->analytics->getStatusDistribution();
+        $monthlyTrends = $this->analytics->getMonthlyTrends();
+        $topExecutors = $this->analytics->getTopExecutors(10);
+        $topIssuers = $this->analytics->getTopIssuers(10);
 
         return $this->render('reports/index', [
             'title' => 'Генерація звітів',
             'activeOrdersCount' => $activeOrdersCount,
             'overdueOrdersCount' => $overdueOrdersCount,
             'departments' => $departments,
-            'executors' => $executors
+            'executors' => $executors,
+            'analytics' => $analytics,
+            'priorityDistribution' => $priorityDistribution,
+            'statusDistribution' => $statusDistribution,
+            'monthlyTrends' => $monthlyTrends,
+            'topExecutors' => $topExecutors,
+            'topIssuers' => $topIssuers
         ]);
-    }
-
-    public function activeOrders()
+    }public function activeOrders()
     {
+        // Автоматично оновлюємо статуси перед генерацією звіту
+        Order::updateOverdueStatuses();
+        
         $activeOrders = Order::getActiveOrders();
 
         return $this->render('reports/active_orders', [
@@ -54,10 +73,11 @@ class ReportController extends Controller
             'orders' => $activeOrders,
             'generated_date' => date('Y-m-d H:i:s')
         ]);
-    }
-
-    public function overdueOrders()
+    }    public function overdueOrders()
     {
+        // Автоматично оновлюємо статуси перед генерацією звіту
+        Order::updateOverdueStatuses();
+        
         $overdueOrders = Order::getOverdueOrders();
 
         return $this->render('reports/overdue_orders', [

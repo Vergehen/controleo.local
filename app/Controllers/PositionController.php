@@ -3,25 +3,35 @@
 namespace App\Controllers;
 
 use App\Models\Position;
+use App\Services\AnalyticsService;
 
 class PositionController extends Controller
 {
     private $position;
+    private $analytics;
 
     public function __construct()
     {
         parent::__construct();
         $this->position = new Position();
-    }
-
-    public function index()
+        $this->analytics = new AnalyticsService();
+    }    public function index()
     {
         $sort = $_GET['sort'] ?? 'position_id';
         $order = $_GET['order'] ?? 'ASC';
         
         $positions = $this->position->getAllWithStats($sort, $order);
+        
+        // Отримуємо аналітичні дані по посадах
+        $generalStats = $this->analytics->getGeneralStatistics();
+        $topExecutors = $this->analytics->getTopExecutors(5);
+        $topIssuers = $this->analytics->getTopIssuers(5);
+        
         return $this->render('positions/index', [
             'positions' => $positions,
+            'generalStats' => $generalStats,
+            'topExecutors' => $topExecutors,
+            'topIssuers' => $topIssuers,
             'title' => 'Посади',
             'currentSort' => $sort,
             'currentOrder' => $order

@@ -42,10 +42,12 @@
                                     <th scope="col">Дедлайн</th>
                                     <th scope="col">Прострочено (днів)</th>
                                 </tr>
-                            </thead>
-                            <tbody>
+                            </thead>                            <tbody>
                                 {foreach $orders as $order}
-                                    {assign var="days_overdue" value=($smarty.now - (strtotime($order.order_deadline)))/86400|ceil}
+                                    {assign var="deadline_timestamp" value=$order.order_deadline|strtotime}
+                                    {assign var="current_timestamp" value=$smarty.now}
+                                    {assign var="diff_seconds" value=$current_timestamp - $deadline_timestamp}
+                                    {assign var="days_overdue" value=($diff_seconds / 86400)|floor}
                                     <tr>
                                         <td>{$order.order_id}</td>
                                         <td>
